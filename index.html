@@ -161,8 +161,13 @@ h1,h2,h3,.display{font-family:'Cormorant Garamond',Georgia,serif}
 
 /* instagram */
 .trilho-ig{align-items:flex-start}
-.ig-item{flex:0 0 300px;scroll-snap-align:start;border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(0,0,0,.08)}
-.ig-item iframe{display:block;width:100%;height:540px;border:0}
+.ig-item{position:relative;flex:0 0 220px;scroll-snap-align:start;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#111;display:block}
+.ig-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.ig-item:hover img{transform:scale(1.03)}
+.ig-item iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+.ig-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.ig-play svg{width:54px;height:54px;fill:#fff;opacity:.92;filter:drop-shadow(0 2px 8px rgba(0,0,0,.45))}
+.ig-marca{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;font-size:.74rem;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6));pointer-events:none}
 .ig-vazio{flex:0 0 100%;text-align:center;font-size:.85rem;color:var(--muted);padding:26px 0}
 .ig-perfil{display:block;text-align:center;font-family:'Jost',sans-serif;font-size:.86rem;
   font-weight:600;color:var(--brand);margin-top:6px;text-decoration:none}
@@ -542,15 +547,33 @@ var RESULTADOS = {
       var partes = p.split(':');
       var tipo = partes[1] ? partes[0] : 'p';
       var codigo = partes[1] || partes[0];
-      var item = document.createElement('div');
+      var url = 'https://www.instagram.com/' + (tipo === 'reel' ? 'reel' : 'p') + '/' + codigo + '/';
+      var item = document.createElement('a');
       item.className = 'ig-item';
-      var f = document.createElement('iframe');
-      f.src = 'https://www.instagram.com/' + (tipo === 'reel' ? 'reel' : 'p') + '/' + codigo + '/embed/';
-      f.loading = 'lazy';
-      f.title = 'Post do Instagram';
-      f.setAttribute('allowtransparency', 'true');
-      f.setAttribute('scrolling', 'no');
-      item.appendChild(f);
+      item.href = url; item.target = '_blank'; item.rel = 'noopener';
+      item.setAttribute('aria-label', tipo === 'reel' ? 'Ver reel no Instagram' : 'Ver post no Instagram');
+      var img = document.createElement('img');
+      img.src = 'img/ig/' + codigo + '.jpg';
+      img.alt = ''; img.loading = 'lazy';
+      /* a moldura segue o formato da capa (9:16 nos reels, 3:4 ou 4:5 no feed) */
+      img.onload = function(){ if(img.naturalWidth) item.style.aspectRatio = img.naturalWidth + '/' + img.naturalHeight; };
+      /* sem capa salva: cai no embed oficial do Instagram */
+      img.onerror = function(){
+        var f = document.createElement('iframe');
+        f.src = url + 'embed/'; f.title = 'Post do Instagram'; f.loading = 'lazy';
+        item.replaceWith(f); f.className = 'ig-item';
+      };
+      item.appendChild(img);
+      if(tipo === 'reel'){
+        var play = document.createElement('span');
+        play.className = 'ig-play';
+        play.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5"/></svg>';
+        item.appendChild(play);
+      }
+      var marca = document.createElement('span');
+      marca.className = 'ig-marca';
+      marca.textContent = 'Ver no Instagram';
+      item.appendChild(marca);
       trilho.appendChild(item);
     });
   }
