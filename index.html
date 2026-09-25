@@ -161,6 +161,8 @@ h1,h2,h3,.display{font-family:'Cormorant Garamond',Georgia,serif}
 
 /* instagram */
 .trilho-ig{align-items:flex-start}
+.ig-item{flex:0 0 300px;scroll-snap-align:start;border-radius:14px;overflow:hidden;background:#fff;border:1px solid rgba(0,0,0,.08)}
+.ig-item iframe{display:block;width:100%;height:540px;border:0}
 .ig-vazio{flex:0 0 100%;text-align:center;font-size:.85rem;color:var(--muted);padding:26px 0}
 .ig-perfil{display:block;text-align:center;font-family:'Jost',sans-serif;font-size:.86rem;
   font-weight:600;color:var(--brand);margin-top:6px;text-decoration:none}
@@ -525,6 +527,40 @@ var RESULTADOS = {
   }
 })();
 
+/* ---------- posts do Instagram (carregados quando a seção aparece) ---------- */
+(function(){
+  var trilho = document.getElementById('ig-trilho');
+  if(!trilho) return;
+  var posts = (trilho.getAttribute('data-posts') || '').split(',')
+    .map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!posts.length) return;
+  var feito = false;
+  function carregar(){
+    if(feito) return; feito = true;
+    trilho.innerHTML = '';
+    posts.forEach(function(p){
+      var partes = p.split(':');
+      var tipo = partes[1] ? partes[0] : 'p';
+      var codigo = partes[1] || partes[0];
+      var item = document.createElement('div');
+      item.className = 'ig-item';
+      var f = document.createElement('iframe');
+      f.src = 'https://www.instagram.com/' + (tipo === 'reel' ? 'reel' : 'p') + '/' + codigo + '/embed/';
+      f.loading = 'lazy';
+      f.title = 'Post do Instagram';
+      f.setAttribute('allowtransparency', 'true');
+      f.setAttribute('scrolling', 'no');
+      item.appendChild(f);
+      trilho.appendChild(item);
+    });
+  }
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(es){
+      if(es.some(function(e){ return e.isIntersecting; })){ io.disconnect(); carregar(); }
+    }, {rootMargin: '300px'});
+    io.observe(trilho);
+  } else { carregar(); }
+})();
 </script>
 </body>
 </html>
